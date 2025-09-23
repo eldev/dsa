@@ -1,5 +1,7 @@
 // https://leetcode.com/problems/connecting-cities-with-minimum-cost
 
+// Prim
+
 class Prim {
 public:
     int minimumCost(int n, vector<vector<pair<int,int>>>& g) {
@@ -42,9 +44,74 @@ public:
     }
 };
 
-class Solution {
+// Kruskal
+
+class UnionFind {
+private:
+    int n;
+    vector<int> p;
+    vector<int> rank;
+public:
+    UnionFind(int n) {
+        this->n = n;
+        this->rank.resize(n, 0);
+        this->p.resize(n);
+        for (int i = 0; i < n; i++) p[i] = i;
+    }
+
+    int find(int x) {
+        if (p[x] != x) p[x] = find(p[x]);
+        return p[x];
+    }
+
+    void Union(int x, int y) {
+        int px = find(x), py = find(y);
+        if (rank[px] < rank[py]) {
+            p[px] = py;
+        } else if (rank[px] > rank[py]) {
+            p[py] = px;
+        } else {
+            p[px] = py;
+            rank[py]++;
+        }
+    }
+};
+
+class Kruskal {
 public:
     int minimumCost(int n, vector<vector<int>>& connections) {
+        UnionFind uf(n);
+        // Sort by the edge's weight
+        sort(connections.begin(), connections.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs[2] < rhs[2];
+        });
+        int totalCost = 0;
+        for (const auto& edge : connections) {
+            int u = edge[0], v = edge[1], w = edge[2];
+            u--; v--;
+            if (uf.find(u) != uf.find(v)) {
+                // handle edge of the MST
+
+                totalCost += w;
+                uf.Union(u, v);
+            }
+        }
+        // If UnionFind unions all vertices of the graph,
+        // then the MST was built successfully.
+        for (int i = 1; i < n; i++) {
+            if (uf.find(i) != uf.find(0)) return -1;
+        }
+
+        return totalCost;
+    }
+};
+
+// Solution
+
+class Solution {
+private:
+    // 1. Prim's algorithm (Accepted)
+    int usePrim(int n, vector<vector<int>>& connections) {
         vector<vector<pair<int,int>>> g(n, vector<pair<int,int>>());
         for (auto edge : connections) {
             int u = edge[0], v = edge[1], cost = edge[2];
@@ -54,5 +121,16 @@ public:
         }
         Prim p;
         return p.minimumCost(n, g);
+    }
+
+    // 2. Kruskal's algorithm (Accepted)
+    int useKruskal(int n, vector<vector<int>>& connections) {
+        Kruskal k;
+        return k.minimumCost(n, connections);
+    }
+
+public:
+    int minimumCost(int n, vector<vector<int>>& connections) {
+        return useKruskal(n, connections);
     }
 };

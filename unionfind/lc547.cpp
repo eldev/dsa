@@ -1,4 +1,4 @@
-// https://leetcode.com/problems/number-of-provinces/description
+// https://leetcode.com/problems/number-of-provinces
 
 class UnionFind {
 private:
