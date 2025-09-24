@@ -1,47 +1,44 @@
 // https://leetcode.com/problems/min-cost-to-connect-all-points
 
 // Prim's algorithm for a dense graph.
+// Time Complexity: O(N^2)
 class Prim {
-private:
-    pair<long, long> getMinEdge(size_t n, const set<long>& used, const set<long>& notused, const vector<vector<long>>& g) {
-        bool found = false;
-        pair<long, long> minEdge;
-        long minWeight = std::numeric_limits<long>::max();
-        for (long u : used) {
-            for (long v : notused) {
-                if (g[u][v] <= minWeight) {
-                    minWeight = g[u][v];
-                    minEdge = make_pair(u, v);
-                    found = true;
+public:
+    long minCostConnectPoints(size_t n, const vector<vector<long>>& g) {
+        vector<bool> used(n, false);
+        // parent[i] is a parent vertex of the i'th vertex in the MST.
+        vector<long> parent(n, -1);
+        // minDist[i] is a weight of the edge (parent[i] <-> i) in the MST.
+        vector<long> minDist(n, std::numeric_limits<long>::max());
+
+        minDist[0] = 0;
+        parent[0] = -1; // the vertex 0 would be a root of the MST
+        for (size_t iteration = 0; iteration < n; iteration++) {
+            long to = -1; // the next vertex that should be added to the MST
+            for (long i = 0; i < n; i++) {
+                if (!used[i] && (to == -1 || minDist[i] < minDist[to])) {
+                    to = i;
+                }
+            }
+            if (to == -1) {
+                return -1; // No MST
+            }
+
+            used[to] = true;
+
+            // The new 'to' vertex was added to the MST,
+            // so need to re-calculate minDist and parent for the remaining vertices
+            // that are not in the MST.
+            for (long newTo = 0; newTo < n; newTo++) {
+                if (!used[newTo] && g[to][newTo] < minDist[newTo]) {
+                    minDist[newTo] = g[to][newTo];
+                    parent[newTo] = to;
                 }
             }
         }
-        if (!found) return make_pair(-1, -1);
-        return minEdge;
-    }
-public:
-    long minCostConnectPoints(size_t n, const vector<vector<long>>& g) {
+
         long totalMinCost = 0;
-        set<long> used;
-        set<long> notused;
-
-        // Start from vertex 0.
-        used.insert(0);
-        for (int i = 1; i < n; i++) notused.insert(i);
-
-        // We added vertex 0, so (n-1) vertices remain to be added.
-        for (size_t iteration = 0; iteration < n - 1; iteration++) {
-            auto e = getMinEdge(n, used, notused, g);
-            long u = e.first, v = e.second;
-            if (u == -1 && v == -1) {
-                // No MST!
-                return -1; // But actually in this task it is not possible.
-            }
-            // Add v to the used set and remove it from the notused set.
-            used.insert(v);
-            notused.erase(v);
-            totalMinCost += g[u][v];
-        }
+        for (long c : minDist) totalMinCost += c;
         return totalMinCost;
     }
 };
