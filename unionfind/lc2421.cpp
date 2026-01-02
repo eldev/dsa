@@ -47,7 +47,7 @@ public:
         }
         UnionFind uf(n);
 
-        // 2. Need to form a graph from the smalles values to highest.
+        // 2. Need to form a graph from the smallest values to largest.
         int ans = 0;
         for (const auto& [val, vertices] : valToVertices) {
             for (int vertex : vertices) {
